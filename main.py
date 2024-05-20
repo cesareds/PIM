@@ -22,15 +22,46 @@ def find_threshold(image):
     return threshold
 
 
+def dfs(x, y, visitados, image):
+    if (visitados[x][y] == False):
+        visitados[x][y] = True
+        if (image[x][y-1]):
+            if (0 < (y - 1) <= h):
+                dfs(x, y-1, visitados, image)
+        elif (image[x][y+1]):
+            if (0 < (y + 1) <= h):
+                dfs(x, y+1, visitados, image)
+        elif (image[x-1][y]):
+            if (0 < (x - 1) <= l):
+                dfs(x-1, y, visitados, image)
+        elif (image[x+1][y-1]):
+            if (0 < (x + 1) <= l):
+                dfs(x+1, y, visitados, image)
+    return visitados
+
 def solve(image):
-    return
+    grupos = []
+    passa = False
+    for i in range(l):
+        for j in range(h):
+            for g in grupos:
+                for item in g:
+                    if item == (i, j):
+                        passa = True
+            if passa:
+                passa = False
+                continue
+            visitar = dfs(i, j, [], image)
 
 
 
 
 path="assets/solda.png"
 image=Image.open(path).convert('L')
+l,h=image.size
 threshold = find_threshold(image)
 b_image_array = np.where(np.array(image)>threshold, 255, 0)
 b_image = Image.fromarray(b_image_array.astype(np.uint8))
-b_image.show()
+
+grupos = []
+
