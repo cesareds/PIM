@@ -22,38 +22,32 @@ def find_threshold(image):
     return threshold
 
 
-def dfs(x, y, visitados, image):
-    if (visitados[x][y] == False):
-        visitados[x][y] = True
-        if (image[x][y-1]):
-            if (0 < (y - 1) <= h):
-                dfs(x, y-1, visitados, image)
-        elif (image[x][y+1]):
-            if (0 < (y + 1) <= h):
-                dfs(x, y+1, visitados, image)
-        elif (image[x-1][y]):
-            if (0 < (x - 1) <= l):
-                dfs(x-1, y, visitados, image)
-        elif (image[x+1][y-1]):
-            if (0 < (x + 1) <= l):
-                dfs(x+1, y, visitados, image)
-    return visitados
+def bfs(start, visited, rows, cols, image):
+    queue = [start]
+    component = []
+    visited.add(start)
+    while queue:
+        x, y = queue.pop(0)
+        component.append((x, y))
+        for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+            nx, ny = x + dx, y + dy
 
-def solve(image):
-    grupos = []
-    passa = False
-    for i in range(l):
-        for j in range(h):
-            for g in grupos:
-                for item in g:
-                    if item == (i, j):
-                        passa = True
-            if passa:
-                passa = False
-                continue
-            visitar = dfs(i, j, [], image)
+            if 0 <= nx < rows and 0 <= ny < cols and (nx, ny) not in visited and image[ny][nx] > 0:
+                queue.append((nx, ny))
+                visited.add((nx, ny))
+
+    return component
 
 
+def get_groups(image):
+    visited = set()
+    components = []
+    for j in range(l):
+        for i in range(h):
+            if image[i][j] > 0 and (i, j) not in visited:
+                component = bfs((i, j), visited, l, h, image)
+                components.append(component)
+    return components
 
 
 path="assets/solda.png"
@@ -63,5 +57,5 @@ threshold = find_threshold(image)
 b_image_array = np.where(np.array(image)>threshold, 255, 0)
 b_image = Image.fromarray(b_image_array.astype(np.uint8))
 
-grupos = []
+grupos = get_groups(b_image_array)
 
