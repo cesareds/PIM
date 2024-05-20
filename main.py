@@ -70,5 +70,9 @@ threshold = find_threshold(image)
 b_image_array = np.where(np.array(image)>threshold, 255, 0)
 b_image = Image.fromarray(b_image_array.astype(np.uint8))
 
-grupos = get_groups(b_image_array)
+g_arrays = get_groups(b_image_array)
+g_image = get_image_groups(g_arrays)
+
+plt.imshow(g_image, cmap='gray')
+plt.show()
 
