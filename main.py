@@ -22,7 +22,7 @@ def find_threshold(image):
     return threshold
 
 
-def bfs(start, visited, rows, cols, image):
+def bfs(start, visited, rows, cols, imagem):
     queue = [start]
     component = []
     visited.add(start)
@@ -31,23 +31,36 @@ def bfs(start, visited, rows, cols, image):
         component.append((x, y))
         for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
             nx, ny = x + dx, y + dy
-
-            if 0 <= nx < rows and 0 <= ny < cols and (nx, ny) not in visited and image[ny][nx] > 0:
+            if 0 <= nx < cols and 0 <= ny < rows and (nx, ny) not in visited and imagem[ny][nx] > 0:
                 queue.append((nx, ny))
                 visited.add((nx, ny))
-
     return component
 
-
-def get_groups(image):
+def get_groups(imagem):
     visited = set()
     components = []
-    for j in range(l):
-        for i in range(h):
-            if image[i][j] > 0 and (i, j) not in visited:
-                component = bfs((i, j), visited, l, h, image)
+    imagem = np.array(imagem)
+    rows, cols = imagem.shape
+    for j in range(cols):
+        for i in range(rows):
+            if imagem[i][j] > 0 and (i, j) not in visited:
+                component = bfs((j, i), visited, rows, cols, imagem)
                 components.append(component)
     return components
+
+
+def get_image_groups(arrays):
+    # Encontra o maior grupo
+    maior = 0
+    m_g = []
+    for g in arrays:
+        if len(g) > maior:
+            maior = len(g)
+            m_g = g
+    ret = [[0 for _ in range(l)] for _ in range(h)]
+    for c in m_g:
+        ret[c[1]][c[0]] = 255
+    return Image.fromarray(np.array(ret))
 
 
 path="assets/solda.png"
