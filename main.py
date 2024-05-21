@@ -60,7 +60,7 @@ def get_image_groups(arrays):
     ret = [[0 for _ in range(l)] for _ in range(h)]
     for c in m_g:
         ret[c[1]][c[0]] = 255
-    return Image.fromarray(np.array(ret))
+    return Image.fromarray((np.array(ret)).astype(np.uint8))
 
 
 path="assets/solda.png"
