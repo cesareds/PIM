@@ -48,17 +48,31 @@ def get_groups(imagem):
                 components.append(component)
     return components
 
+def find_center_of_mass(image):
+    image = np.array(image)
+    x = np.arange(image.shape[1])
+    y = np.arange(image.shape[0])
+    xx, yy = np.meshgrid(x, y)
+    a = image.sum()
+    x_cms = (xx * image).sum() / a
+    y_cms = (yy * image).sum() / a
+    return (x_cms, y_cms)
 
-def get_image_groups(arrays):
-    # Encontra o maior grupo
-    maior = 0
-    m_g = []
-    for g in arrays:
-        if len(g) > maior:
-            maior = len(g)
-            m_g = g
+def find_group_closest_to_cmass(groups, cmass):
+    min_dist = 100000000
+    g = []
+    for group in groups:
+        for coord in group:
+            dist = math.sqrt((coord[0] - cmass[0]) ** 2 + (coord[1] - cmass[1]) ** 2)
+            if dist < min_dist:
+                min_dist = dist
+                g = group
+                continue
+    return g
+
+def get_image_from_group(group):
     ret = [[0 for _ in range(l)] for _ in range(h)]
-    for c in m_g:
+    for c in group:
         ret[c[1]][c[0]] = 255
     return Image.fromarray((np.array(ret)).astype(np.uint8))
 
@@ -66,12 +80,15 @@ def get_image_groups(arrays):
 path="assets/solda.png"
 image=Image.open(path).convert('L')
 l,h=image.size
+
 threshold = find_threshold(image)
 b_image_array = np.where(np.array(image)>threshold, 255, 0)
 b_image = Image.fromarray(b_image_array.astype(np.uint8))
 
 g_arrays = get_groups(b_image_array)
-g_image = get_image_groups(g_arrays)
+center_mass = find_center_of_mass(image)
+g_closest = find_group_closest_to_cmass(g_arrays, center_mass)
+g_image = get_image_from_group(g_closest)
 
 plt.imshow(g_image, cmap='gray')
 plt.show()
