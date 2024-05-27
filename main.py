@@ -85,6 +85,13 @@ def remove_border_groups(b_image_array):
 
     return b_image_array
 
+def find_center_of_mass(group):
+    x_all = [c[0] for c in group]
+    y_all = [c[1] for c in group]
+    x_center = np.mean(x_all)
+    y_center = np.mean(y_all)
+    return (x_center, y_center)
+
 
 path="assets/solda.png"
 image=Image.open(path).convert('L')
