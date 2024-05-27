@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from PIL import Image
 import math
 
-def find_threshold(image):
+def threshold(image):
     img_array = np.array(image)
     threshold = np.mean(img_array)
     while True:
@@ -35,57 +35,57 @@ def bfs(start, visited, rows, cols, imagem):
                 visited.add((nx, ny))
     return component
 
-def get_biggest(imagem):
+def biggest(image):
     visited = set()
     components = []
-    imagem = np.array(imagem)
-    rows, cols = imagem.shape
+    image = np.array(image)
+    rows, cols = image.shape
     for j in range(cols):
         for i in range(rows):
-            if imagem[i][j] > 0 and (i, j) not in visited:
-                component = bfs((j, i), visited, rows, cols, imagem)
+            if image[i][j] > 0 and (i, j) not in visited:
+                component = bfs((j, i), visited, rows, cols, image)
                 components.append(component)
     biggest = max(components, key=len)
     return biggest
 
-def get_image_from_group(group):
+def gp_img(group):
     ret = [[0 for _ in range(l)] for _ in range(h)]
     for c in group:
         ret[c[1]][c[0]] = 255
     return Image.fromarray((np.array(ret)).astype(np.uint8))
 
-def remove_border_groups(b_image_array):
-    rows, cols = b_image_array.shape
+def border_cleaner(bimg):
+    rows, cols = bimg.shape
     visited = set()
 
-    def bfs_remove_border(start):
-        queue = [start]
+    def bfs_border(root):
+        queue = [root]
         component = []
-        border_touching = False
+        border = False
         while queue:
             x, y = queue.pop(0)
             component.append((x, y))
             visited.add((x, y))
             if x == 0 or x == cols-1 or y == 0 or y == rows-1:
-                border_touching = True
+                border = True
             for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
                 nx, ny = x + dx, y + dy
-                if 0 <= nx < cols and 0 <= ny < rows and (nx, ny) not in visited and b_image_array[ny, nx] > 0:
+                if 0 <= nx < cols and 0 <= ny < rows and (nx, ny) not in visited and bimg[ny, nx] > 0:
                     queue.append((nx, ny))
                     visited.add((nx, ny))
-        return component, border_touching
+        return component, border
 
     for y in range(rows):
         for x in range(cols):
-            if b_image_array[y, x] > 0 and (x, y) not in visited:
-                component, border_touching = bfs_remove_border((x, y))
+            if bimg[y, x] > 0 and (x, y) not in visited:
+                component, border_touching = bfs_border((x, y))
                 if border_touching:
                     for (cx, cy) in component:
-                        b_image_array[cy, cx] = 0
+                        bimg[cy, cx] = 0
 
-    return b_image_array
+    return bimg
 
-def find_center_of_mass(group):
+def center(group):
     x_all = [c[0] for c in group]
     y_all = [c[1] for c in group]
     x_center = np.mean(x_all)
@@ -98,16 +98,29 @@ image=Image.open(path).convert('L')
 l,h=image.size
 
 # encontra o threshold
-threshold = find_threshold(image)
-#torna a imagem binária a partir do threshold
-b_image_array = np.where(np.array(image)>threshold, 255, 0)
-#usa bfs nas bordas para remover os grupos que encostam nela
-b_image_array = remove_border_groups(b_image_array)
-#encontra o maior grupo usando bfs
-g_biggest = get_biggest(b_image_array)
-#transforma o array em imagem
-g_image = get_image_from_group(g_biggest)
+threshold = threshold(image)
 
-plt.imshow(g_image, cmap='gray')
+#torna a imagem binária a partir do threshold
+bimg = np.where(np.array(image)>threshold, 255, 0)
+
+#usa bfs nas bordas para remover os grupos que encostam nela
+bimg = border_cleaner(bimg)
+
+#encontra o maior grupo usando bfs
+biggest = biggest(bimg)
+
+#encontra o centro de massa do grupo
+c = center(biggest)
+
+#transforma o array em imagem
+img = gp_img(biggest)
+
+#define a imagem que será mostrada
+plt.imshow(img, cmap='gray')
+
+#plota uma letra O na cordenada do centro de massa definida por c[0](x) e c[1](y)
+plt.plot(c[0], c[1], 'ro')
+
+#exibe a imagem
 plt.show()
 
