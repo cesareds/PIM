@@ -11,7 +11,7 @@ from skimage.metrics import structural_similarity
 # Distância entre pontos 40 24
 
 def fourier_masker_ver(image, i):
-    font_size = 15
+    font_size = 8
     dark_image_grey_fourier = np.fft.fftshift(np.fft.fft2(image))
     w, h = image.size
     
@@ -24,33 +24,49 @@ def fourier_masker_ver(image, i):
     dark_image_grey_fourier[int(h/2)-2:int(h/2)+2, -(int(w/2)-10):] = i
     
     reversed_fourier = abs(np.fft.ifft2(dark_image_grey_fourier))
+    ssimOG = structural_similarity(reversed_fourier, np.array(image), data_range=255)
 
-    fig, ax = plt.subplots(1,6,figsize=(12,8))
-    ax[0].imshow(np.log(abs(dark_image_grey_fourier)), cmap='gray')
-    ax[0].set_title('Masked Fourier', fontsize = font_size)
-    ax[1].imshow(image, cmap = 'gray')
-    ax[1].set_title('Greyscale Image', fontsize = font_size)
-    transformed1 = increase_brightness_equalizing_histogram(reversed_fourier)
-    ax[2].imshow(transformed1, cmap='gray')
-    ax[2].set_title('Hist Eq', fontsize = font_size)
-    transformed2 = increase_brightness_equalizing_histogram_adapted(reversed_fourier)
-    ax[3].imshow(transformed2, cmap='gray')
-    ax[3].set_title('Adapt Hist Eq', fontsize = font_size)
-    (transformed3, ssim3) = increase_brightness_pil_enhancer(reversed_fourier)
-    ax[4].imshow(transformed3, cmap='gray')
-    ax[4].set_title('Pil Enhance', fontsize = font_size)
-    (transformed4, ssim4) = increase_brightness_cv2(reversed_fourier)
-    ax[5].imshow(transformed4, cmap='gray')
-    ax[5].set_title('CV2 Enhance', fontsize = font_size)
+    fig, ax = plt.subplots(3,3,figsize=(12,8))
+    ax[0,1].imshow(np.log(abs(dark_image_grey_fourier)), cmap='gray')
+    ax[0,1].set_title('Masked Fourier', fontsize = font_size)
+    ax[0,1].axis('off')
+
+    ax[0,0].imshow(image, cmap = 'gray')
+    ax[0,0].set_title('Greyscale Image', fontsize = font_size)
+    ax[0,0].axis('off')
+
+    transformed_eq_hist = increase_brightness_equalizing_histogram(reversed_fourier)
+    ssim_eq_hist = structural_similarity(transformed_eq_hist, np.array(image), data_range=255)
+    ax[2,0].imshow(transformed_eq_hist, cmap='gray')
+    ax[2,0].set_title('Hist Eq: '+ str(ssim_eq_hist), fontsize = font_size)
+    ax[2,0].axis('off')
+
+    transformed_eq_hist_adapted = increase_brightness_equalizing_histogram_adapted(reversed_fourier)
+    ssim_eq_hist_adapted = structural_similarity(transformed_eq_hist_adapted, np.array(image), data_range=255)
+    ax[1,0].imshow(transformed_eq_hist_adapted, cmap='gray')
+    ax[1,0].set_title('Adapt Hist Eq: '+ str(ssim_eq_hist_adapted), fontsize = font_size)
+    ax[1,0].axis('off')
+
+    (transformed_pil, ssim_pil) = increase_brightness_pil_enhancer(reversed_fourier)
+    ax[1,1].imshow(transformed_pil, cmap='gray')
+    ax[1,1].set_title('Pil Enhance: '+ str(ssim_pil), fontsize = font_size)
+    ax[1,1].axis('off')
+
+    (transformed_cv, ssim_cv) = increase_brightness_cv2(reversed_fourier)
+    ax[1,2].imshow(transformed_cv, cmap='gray')
+    ax[1,2].set_title('CV2 Enhance: '+ str(ssim_cv), fontsize = font_size)
+    ax[1,2].axis('off')
+
+    ax[0,2].imshow(reversed_fourier, cmap='gray')
+    ax[0,2].set_title('Fourier: '+ str(ssimOG), fontsize = font_size)
+    ax[0,2].axis('off')
 
     print("SSIMs:\n")
-    print()
-    ssim1 = structural_similarity(transformed1, np.array(image), data_range=255)
-    print("{:<30} {:<10.6f}".format("Equalized Histogram:", ssim1))
-    ssim2 = structural_similarity(transformed2, np.array(image), data_range=255)
-    print("{:<30} {:<10.6f}".format("Equalized Adapted Histogram:", ssim2))
-    print("{:<30} {:<10.6f}".format("PIL Enhancement:", ssim3))
-    print("{:<30} {:<10.6f}".format("CV2 Enhancement:", ssim4))
+    print("{:<30} {:<10.6f}".format("Original:", ssimOG))
+    print("{:<30} {:<10.6f}".format("Equalized Histogram:", ssim_eq_hist))
+    print("{:<30} {:<10.6f}".format("Equalized Adapted Histogram:", ssim_eq_hist_adapted))
+    print("{:<30} {:<10.6f}".format("PIL Enhancement:", ssim_pil))
+    print("{:<30} {:<10.6f}".format("CV2 Enhancement:", ssim_cv))
     
 
 def increase_brightness_equalizing_histogram(dark_image):
@@ -105,5 +121,6 @@ img = Image.open(path).convert('L')
 ssim_enhacements = []
 
 fourier_masker_ver(img_r, 0.2)
-
+plt.style.use('dark_background')
+plt.tight_layout()
 plt.show()
