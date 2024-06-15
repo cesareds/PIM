@@ -121,6 +121,5 @@ img = Image.open(path).convert('L')
 ssim_enhacements = []
 
 fourier_masker_ver(img_r, 0.2)
-plt.style.use('dark_background')
 plt.tight_layout()
 plt.show()
